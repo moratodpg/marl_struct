@@ -1,7 +1,7 @@
 """ Wrapper for struct_env respecting the interface of PyMARL. """
 
 import numpy as np
-# import torch
+import torch
 
 from imp_marl.environments.struct_small import StructSmall
 from imp_marl.imp_wrappers.pymarl_wrapper.MultiAgentEnv import MultiAgentEnv
