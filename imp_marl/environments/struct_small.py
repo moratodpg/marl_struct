@@ -2,10 +2,10 @@
 
 import numpy as np
 import os
-from imp_env.imp_env import ImpEnv
+from imp_marl.environments.imp_env import ImpEnv
 
 
-class StructSimp(ImpEnv):
+class StructSmall(ImpEnv):
     """ k-out-of-n system (struct) class. 
 
     Attributes:
@@ -39,7 +39,6 @@ class StructSimp(ImpEnv):
         pf_sys
         immediate_cost
         belief_update_uncorrelated
-        belief_update_correlated
     """
     def __init__(self, config=None):
         """ Initialises the class according to the provided config instructions.
@@ -53,104 +52,50 @@ class StructSimp(ImpEnv):
                     campaign_cost: Whether to include campaign cost in reward.
         """
         if config is None:
-            config = {"n_comp": 2,
-                      "discount_reward": 0.99,
-                      "k_comp": 2,
-                      "campaign_cost": False}
-        assert "n_comp" in config and \
-               "discount_reward" in config and \
-               "k_comp" in config and \
-               "campaign_cost" in config, \
-            "Missing env config"
+            print("No config provided.")
 
         self.n_comp = config["n_comp"]
         self.discount_reward = config["discount_reward"]
         self.k_comp = self.n_comp - 1 if config["k_comp"] is None \
             else config["k_comp"]
         self.campaign_cost = config["campaign_cost"]
-        self.ep_length = 20  
-        self.proba_size = 4  
-        self.n_obs_inspection = 4  
-        self.actions_per_agent = 3
+        self.ep_length = config["ep_length"] 
+        self.proba_size = config["proba_size"]
+        self.n_obs_inspection = config["n_obs_inspection"]
+        self.actions_per_agent = config["actions_per_agent"]
 
         # (ncomp components, proba_size damage)
-        initial_damage_ = [1, 0.0, 0.0, 0.0]
-        initial_damage = np.zeros((2, 4))
-        initial_damage[:] = initial_damage_
-        self.initial_damage_proba = initial_damage
+        self.initial_damage_proba = np.array(config["initial_damage_prob"])
 
-        P_do_noth = np.array(
-            [
-                [[0.82, 0.13, 0.05, 0.0],
-                [0.0, 0.87, 0.09, 0.04],
-                [0.0, 0.0, 0.91, 0.09],
-                [0.0, 0.0, 0.0, 1]],
+        # (actions, components, damage states, damage states)
+        self.transition_model = np.array(config["transition_model"])
 
-                [[0.72, 0.19, 0.09, 0.0],
-                [0.0, 0.78, 0.18, 0.04],
-                [0.0, 0.0, 0.85, 0.15],
-                [0.0, 0.0, 0.0, 1]],
-            ]
-        )
-
-        #repair_accuracy = [1, 0.9, 0.95, 0.85, 0.8]
-        P_repair = np.array(
-            [
-                [[0.82, 0.13, 0.05, 0.0],
-                [0.82, 0.13, 0.05, 0.0],
-                [0.82, 0.13, 0.05, 0.0],
-                [0.82, 0.13, 0.05, 0.0]],
-
-                [[0.72, 0.19, 0.09, 0.0],
-                [0.648, 0.249, 0.099, 0.004],
-                [0.648, 0.171, 0.166, 0.015],
-                [0.648, 0.171, 0.081, 0.1]],
-            ]
-        )
-        # (3 actions, 5 components, 4 damage states, 4 damage states)
-        P = np.zeros((3, 3, 4, 4))
-        P[:2] = P_do_noth
-        P[2] = P_repair
-        self.transition_model = P
-
-        insp_accuracy = [0.8, 0.85]
-        O_inspect = np.array(
-            [
-                [[insp_accuracy[0], 1-insp_accuracy[0], 0.0, 0.0],
-                [(1-insp_accuracy[0])/2, insp_accuracy[0], (1-insp_accuracy[0])/2, 0.0],
-                [0.0, (1-insp_accuracy[0])/2, insp_accuracy[0], (1-insp_accuracy[0])/2],
-                [0.0, 0.0, 0.0, 1.0]],
-
-                [[insp_accuracy[1], 1-insp_accuracy[1], 0.0, 0.0],
-                [(1-insp_accuracy[1])/2, insp_accuracy[1], (1-insp_accuracy[1])/2, 0.0],
-                [0.0, (1-insp_accuracy[1])/2, insp_accuracy[1], (1-insp_accuracy[1])/2],
-                [0.0, 0.0, 0.0, 1.0]],
-            ]
-        )
-
-        O_noinspect = np.array(
-                [
-                    [[1/3, 1/3, 1/3, 0.0],
-                    [1/3, 1/3, 1/3, 0.0],
-                    [1/3, 1/3, 1/3, 0.0],
-                    [0.0, 0.0, 0.0, 1.0]],
-
-                    [[1/3, 1/3, 1/3, 0.0],
-                    [1/3, 1/3, 1/3, 0.0],
-                    [1/3, 1/3, 1/3, 0.0],
-                    [0.0, 0.0, 0.0, 1.0]],
-                ]
-            )
+        insp_accuracy = config["inspection_model"]
+        O_inspect = np.zeros((self.n_comp, self.proba_size, self.n_obs_inspection))
+        for i in range(self.n_comp):
+            O_inspect[i, 0] = [insp_accuracy[i], 1-insp_accuracy[i], 0.0, 0.0]
+            O_inspect[i, 1] = [(1-insp_accuracy[i])/2, insp_accuracy[i], (1-insp_accuracy[i])/2, 0.0]
+            O_inspect[i, 2] = [0.0, (1-insp_accuracy[i])/2, insp_accuracy[i], (1-insp_accuracy[i])/2]
+            O_inspect[i, 3] = [0.0, 0.0, 0.0, 1.0]
+        
+        O_noinspect = np.zeros((self.n_comp, self.proba_size, self.n_obs_inspection))
+        for i in range(self.n_comp):
+            O_noinspect[i, 0] = [1/4, 1/4, 1/4, 1/4]
+            O_noinspect[i, 1] = [1/4, 1/4, 1/4, 1/4]
+            O_noinspect[i, 2] = [1/4, 1/4, 1/4, 1/4]
+            O_noinspect[i, 3] = [1/4, 1/4, 1/4, 1/4]
 
         # (3 actions, 5 components, 4 damage states, 4 inspections)
         self.inspection_model = O_inspect
         self.no_inspection_model = O_noinspect
         
-        self.cost_inspection = [-20, -40]
-        self.cost_repair = [-30, -90]
-        #cost_insp = np.array(self.cost_inspection)
+        self.cost_inspection = config["cost_inspection"]
+        self.cost_repair = config["cost_repair"]
+        self.campaign_cost = config["campaign_cost"]
+
+        self.failure_cost_factor = config["failure_cost_factor"]
         cost_rep = np.array(self.cost_repair)
-        self.cost_failure = ( np.sum(cost_rep) )*3
+        self.cost_failure = (np.sum(cost_rep)) * self.failure_cost_factor
 
         self.agent_list = ["agent_" + str(i) for i in range(self.n_comp)]
 
