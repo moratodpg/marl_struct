@@ -12,25 +12,17 @@ class StructSmall(ImpEnv):
         n_comp: Integer indicating the number of components.
         discount_reward: Float indicating the discount factor.
         k_comp: Integer indicating the number 'k' (out of n) components in the system.
-        env_correlation: Boolean indicating whether the initial damage prob are correlated among components.
         campaign_cost: Boolean indicating whether a global campaign cost is considered in the reward model.
         ep_length: Integer indicating the number of time steps in the finite horizon.
         proba_size: Integer indicating the number of bins considered in the discretisation of the damage probability.
-        alpha_size: Integer indicating the number of bins considered in the discretisation of the correlation factor.
         n_obs_inspection: Integer indicating the number of potential outcomes resulting from an inspection.
         actions_per_agent: Integer indicating the number of actions that an agent can take.
         initial_damage_proba: Numpy array containing the initial damage probability.
         transition_model: Numpy array containing the transition model that drives the environment dynamics.
         inspection_model: Numpy array containing the inspection model.
-        initial_alpha: Numpy array contaning the containing the initial correlation factor.
-        initial_damage_proba_correlated: Numpy array containing the initial damage probability given the correlation factor.
-        damage_proba_after_repair_correlated: Numpy array containing the initial damage probability given the correlation factor after a repair is conducted.
         agent_list: Dictionary categorising the number of agents.
         time_step: Integer indicating the current time step.
         damage_proba: Numpy array contatining the current damage probability.
-        damage_proba_correlated: Numpy array contatining the current damage probability given the correlation factor.
-        alphas: Numpy array contatining the current correlation factor.
-        d_rate: Numpy array contatining the current deterioration rate.
         observations: Dictionary listing the observations received by the agents in the Dec-POMDP.
 
     Methods: 
@@ -209,7 +201,7 @@ class StructSmall(ImpEnv):
         campaign_executed = False
         for i in range(self.n_comp):
             if a[i] == 1:
-                cost_system += -0.2 if self.campaign_cost else self.cost_inspection[i] # Individual inspection costs 
+                cost_system += self.cost_inspection[i] # Individual inspection costs 
                 if self.campaign_cost and not campaign_executed:
                     campaign_executed = True # Campaign executed
             elif a[i] == 2:
@@ -223,7 +215,7 @@ class StructSmall(ImpEnv):
 
         cost_system += PfSyS * (self.cost_failure)
         if campaign_executed: 
-            cost_system += -5
+            cost_system += self.campaign_cost
         return cost_system
 
     def belief_update_uncorrelated(self, proba, action):
