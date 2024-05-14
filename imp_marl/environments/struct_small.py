@@ -2,8 +2,8 @@
 
 import numpy as np
 import os
+import importlib
 from imp_marl.environments.imp_env import ImpEnv
-
 
 class StructSmall(ImpEnv):
     """ k-out-of-n system (struct) class. 
@@ -32,7 +32,7 @@ class StructSmall(ImpEnv):
         immediate_cost
         belief_update_uncorrelated
     """
-    def __init__(self, config=None):
+    def __init__(self, config_file=None):
         """ Initialises the class according to the provided config instructions.
 
         Args:
@@ -43,8 +43,13 @@ class StructSmall(ImpEnv):
                     k_comp: Number of components required to not fail.
                     campaign_cost: Whether to include campaign cost in reward.
         """
-        if config is None:
-            print("No config provided.")
+        if config_file is None:
+            print("No config file provided.")
+
+        self.config_file = config_file
+        module_path = f"imp_marl.environments.pomdp_models.{self.config_file}"
+        module = importlib.import_module(module_path)
+        config = getattr(module, 'config', None)  # None is the default if 'config' is not found
 
         self.n_comp = config["n_comp"]
         self.discount_reward = config["discount_reward"]
