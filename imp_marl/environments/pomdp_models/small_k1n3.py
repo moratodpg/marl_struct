@@ -1,8 +1,8 @@
 config = {}
 
-config["n_comp"] = 2
+config["n_comp"] = 3
 config["discount_reward"] = 0.99
-config["k_comp"] = 2
+config["k_comp"] = 1
 config["campaign_cost"] = True
 
 config["ep_length"] = 20
@@ -13,12 +13,8 @@ config["actions_per_agent"] = 3
 config["initial_damage_prob"] = [
     [0.6, 0.3, 0.1, 0.0],
     [0.6, 0.3, 0.1, 0.0],
+    [0.6, 0.3, 0.1, 0.0],
 ]
-
-# config["initial_damage_prob"] = [
-#     [1.0, 0.0, 0.0, 0.0],
-#     [1.0, 0.0, 0.0, 0.0],
-# ]
 
 # Action, component, state, state
 config["transition_model"] = [
@@ -32,6 +28,11 @@ config["transition_model"] = [
         [0.0, 0.78, 0.18, 0.04],
         [0.0, 0.0, 0.85, 0.15],
         [0.0, 0.0, 0.0, 1]],
+
+        [[0.79, 0.17, 0.04, 0.0],
+        [0.0, 0.85, 0.09, 0.06],
+        [0.0, 0.0, 0.91, 0.09],
+        [0.0, 0.0, 0.0, 1]],
     ],
     [
         [[0.82, 0.13, 0.05, 0.0],
@@ -42,6 +43,11 @@ config["transition_model"] = [
         [[0.72, 0.19, 0.09, 0.0],
         [0.0, 0.78, 0.18, 0.04],
         [0.0, 0.0, 0.85, 0.15],
+        [0.0, 0.0, 0.0, 1]],
+
+        [[0.79, 0.17, 0.04, 0.0],
+        [0.0, 0.85, 0.09, 0.06],
+        [0.0, 0.0, 0.91, 0.09],
         [0.0, 0.0, 0.0, 1]],
     ],
     [
@@ -54,12 +60,17 @@ config["transition_model"] = [
         [0.648, 0.249, 0.099, 0.004],
         [0.648, 0.171, 0.166, 0.015],
         [0.648, 0.171, 0.081, 0.1]],
+
+        [[0.79, 0.17, 0.04, 0.0],
+        [0.7505, 0.204, 0.0425, 0.003],
+        [0.7505, 0.1615, 0.0835, 0.0045],
+        [0.7505, 0.1615, 0.038, 0.05]],
     ],
 ]
 
-config["inspection_model"] = [0.8, 0.85]
+config["inspection_model"] = [0.8, 0.85, 0.9]
 
-config["cost_inspection"] = [-20, -40]
-config["cost_repair"] = [-30, -90]
+config["cost_inspection"] = [-20, -40, -25]
+config["cost_repair"] = [-30, -90, -80]
 config["cost_campaign"] = -40
 config["failure_cost_factor"] = 3
