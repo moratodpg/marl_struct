@@ -88,7 +88,7 @@ class StructSmall(ImpEnv):
         
         self.cost_inspection = config["cost_inspection"]
         self.cost_repair = config["cost_repair"]
-        self.campaign_cost = config["campaign_cost"]
+        self.cost_campaign = config["cost_campaign"]
 
         self.failure_cost_factor = config["failure_cost_factor"]
         cost_rep = np.array(self.cost_repair)
@@ -220,7 +220,7 @@ class StructSmall(ImpEnv):
 
         cost_system += PfSyS * (self.cost_failure)
         if campaign_executed: 
-            cost_system += self.campaign_cost
+            cost_system += self.cost_campaign
         return cost_system
 
     def belief_update_uncorrelated(self, proba, action):
