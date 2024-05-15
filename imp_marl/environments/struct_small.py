@@ -47,7 +47,7 @@ class StructSmall(ImpEnv):
             print("No config file provided.")
 
         self.config_file = config_file
-        module_path = f"imp_marl.environments.pomdp_models.{self.config_file}"
+        module_path = f"imp_marl.environments.pomdp_models.small{self.config_file}"
         module = importlib.import_module(module_path)
         config = getattr(module, 'config', None)  # None is the default if 'config' is not found
 
