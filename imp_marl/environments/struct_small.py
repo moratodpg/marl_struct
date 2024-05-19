@@ -47,7 +47,7 @@ class StructSmall(ImpEnv):
             print("No config file provided.")
 
         self.config_file = config_file
-        module_path = f"imp_marl.environments.pomdp_models.small{self.config_file}"
+        module_path = f"imp_marl.environments.pomdp_models.small_{self.config_file}"
         module = importlib.import_module(module_path)
         config = getattr(module, 'config', None)  # None is the default if 'config' is not found
 
@@ -68,19 +68,31 @@ class StructSmall(ImpEnv):
         self.transition_model = np.array(config["transition_model"])
 
         insp_accuracy = config["inspection_model"]
-        O_inspect = np.zeros((self.n_comp, self.proba_size, self.n_obs_inspection))
-        for i in range(self.n_comp):
-            O_inspect[i, 0] = [insp_accuracy[i], 1-insp_accuracy[i], 0.0, 0.0]
-            O_inspect[i, 1] = [(1-insp_accuracy[i])/2, insp_accuracy[i], (1-insp_accuracy[i])/2, 0.0]
-            O_inspect[i, 2] = [0.0, (1-insp_accuracy[i])/2, insp_accuracy[i], (1-insp_accuracy[i])/2]
-            O_inspect[i, 3] = [0.0, 0.0, 0.0, 1.0]
+        if self.proba_size == 4:
+            O_inspect = np.zeros((self.n_comp, self.proba_size, self.n_obs_inspection))
+            for i in range(self.n_comp):
+                O_inspect[i, 0] = [insp_accuracy[i], 1-insp_accuracy[i], 0.0, 0.0]
+                O_inspect[i, 1] = [(1-insp_accuracy[i])/2, insp_accuracy[i], (1-insp_accuracy[i])/2, 0.0]
+                O_inspect[i, 2] = [0.0, (1-insp_accuracy[i])/2, insp_accuracy[i], (1-insp_accuracy[i])/2]
+                O_inspect[i, 3] = [0.0, 0.0, 0.0, 1.0]
         
-        O_noinspect = np.zeros((self.n_comp, self.proba_size, self.n_obs_inspection))
-        for i in range(self.n_comp):
-            O_noinspect[i, 0] = [1/4, 1/4, 1/4, 1/4]
-            O_noinspect[i, 1] = [1/4, 1/4, 1/4, 1/4]
-            O_noinspect[i, 2] = [1/4, 1/4, 1/4, 1/4]
-            O_noinspect[i, 3] = [1/4, 1/4, 1/4, 1/4]
+            O_noinspect = np.zeros((self.n_comp, self.proba_size, self.n_obs_inspection))
+            for i in range(self.n_comp):
+                O_noinspect[i, 0] = [1/4, 1/4, 1/4, 1/4]
+                O_noinspect[i, 1] = [1/4, 1/4, 1/4, 1/4]
+                O_noinspect[i, 2] = [1/4, 1/4, 1/4, 1/4]
+                O_noinspect[i, 3] = [1/4, 1/4, 1/4, 1/4]
+
+        elif self.proba_size == 2:   
+            O_inspect = np.zeros((self.n_comp, self.proba_size, self.n_obs_inspection))
+            for i in range(self.n_comp):
+                O_inspect[i, 0] = [insp_accuracy[i], 1-insp_accuracy[i]]
+                O_inspect[i, 1] = [0.0, 1.0]
+            
+            O_noinspect = np.zeros((self.n_comp, self.proba_size, self.n_obs_inspection))
+            for i in range(self.n_comp):
+                O_noinspect[i, 0] = [1/2, 1/2]
+                O_noinspect[i, 1] = [1/2, 1/2]
 
         # (3 actions, 5 components, 4 damage states, 4 inspections)
         self.inspection_model = O_inspect
